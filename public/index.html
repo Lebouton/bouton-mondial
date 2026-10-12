@@ -27,6 +27,9 @@ button{font:inherit;color:inherit}
 #foot button{background:none;border:0;color:var(--muted);letter-spacing:.1em;cursor:pointer;padding:4px;text-transform:uppercase;font-size:.78rem}
 #foot button:hover{color:var(--fg)}
 #sh{display:none}
+#pv,.pvl{color:var(--muted);text-decoration:none;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase}
+#pv:hover,.pvl:hover{color:var(--fg)}
+.pvl{margin-top:18px}
 #tabs{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;display:flex;justify-content:center;gap:28px;padding:18px 0;z-index:3}
 #tabs button,#per button{background:none;border:0;color:var(--muted);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;padding:4px 2px;border-bottom:1px solid transparent}
 #tabs button.on,#per button.on{color:var(--fg);border-bottom-color:var(--fg)}
@@ -67,19 +70,18 @@ button{font:inherit;color:inherit}
   <div id="tag">jusqu&rsquo;où iras-tu ?</div>
 </div>
 <div id="msg"></div>
-<div id="foot"><span id="me"></span><button id="sh">Partager</button><button id="snd">Son on</button></div>
+<div id="foot"><span id="me"></span><button id="sh">Partager</button><button id="snd">Son on</button><a href="/privacy.html" id="pv">Confidentialité</a></div>
 <div id="board">
   <div id="per"><button data-p="day">Jour</button><button data-p="week">Semaine</button><button data-p="total" class="on">Total</button></div>
   <div id="rows"></div>
   <div id="who"></div>
+  <a href="/privacy.html" class="pvl">Confidentialité</a>
 </div>
 <div id="reg"><div class="box">
   <h2>Rejoins le classement</h2>
   <input id="f-pseudo" maxlength="14" placeholder="pseudo" autocomplete="off">
-  <input id="f-city" maxlength="24" placeholder="ville" autocomplete="off">
-  <select id="f-cc"><option value="">pays</option></select>
   <p id="f-err"></p>
-  <p>Ton pseudo, ta ville et ton pays seront visibles par tous.</p>
+  <p>Ton pseudo sera visible par tous. <a href="/privacy.html" style="color:inherit">Confidentialité</a></p>
   <div class="row"><button id="f-ok">Valider</button><button class="g" id="f-no">Plus tard</button></div>
 </div></div>
 <div id="ov">
@@ -90,13 +92,13 @@ button{font:inherit;color:inherit}
 <script>
 var SB='https://olrszbxxstlldkcyjwwh.supabase.co',KEY='sb_publishable_JipYH7C-ut62Iyarr1L4_g_LBqm5wUU';
 var S={};try{S=JSON.parse(localStorage.getItem('bm')||'{}')||{}}catch(e){}
-var tok=S.tok||'',pseudo=S.p||'',city=S.c||'',cc=S.k||'',mytotal=S.t||0;
+var tok=S.tok||'',pseudo=S.p||'',mytotal=S.t||0;
 var pending=0,sending=0,base=0,shown=0,suspended=false,localBan=false,flags=0,times=[],lock=0;
 var period='total',boardOpen=false,sound=true,ac=null,bus=null,lb=[],myr=null,lastRank=null;
 var n=document.getElementById('n'),me=document.getElementById('me'),msg=document.getElementById('msg');
 function fmt(x){return Number(x).toLocaleString('fr-FR')}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-function save(){try{localStorage.setItem('bm',JSON.stringify({tok:tok,p:pseudo,c:city,k:cc,t:mytotal}))}catch(e){}}
+function save(){try{localStorage.setItem('bm',JSON.stringify({tok:tok,p:pseudo,t:mytotal}))}catch(e){}}
 
 /* ---------- serveur ---------- */
 function rpc(fn,args,keep){
@@ -156,12 +158,6 @@ document.getElementById('b').addEventListener('click',function(e){
  else if(shown%100000===0){ring(true);flash('palier mondial')}
 });
 
-/* ---------- pays ---------- */
-var CT=[['FR','France'],['BE','Belgique'],['CH','Suisse'],['LU','Luxembourg'],['CA','Canada'],['DE','Allemagne'],['ES','Espagne'],['IT','Italie'],['PT','Portugal'],['NL','Pays-Bas'],['GB','Royaume-Uni'],['IE','Irlande'],['US','États-Unis'],['MX','Mexique'],['BR','Brésil'],['AR','Argentine'],['MA','Maroc'],['DZ','Algérie'],['TN','Tunisie'],['SN','Sénégal'],['CI','Côte d’Ivoire'],['CM','Cameroun'],['ZA','Afrique du Sud'],['EG','Égypte'],['TR','Turquie'],['IN','Inde'],['CN','Chine'],['JP','Japon'],['KR','Corée du Sud'],['AU','Australie'],['NZ','Nouvelle-Zélande'],['PL','Pologne'],['SE','Suède'],['NO','Norvège'],['DK','Danemark'],['FI','Finlande'],['AT','Autriche'],['GR','Grèce'],['RO','Roumanie'],['UA','Ukraine']];
-function cname(k){for(var i=0;i<CT.length;i++)if(CT[i][0]===k)return CT[i][1];return k}
-function flag(k){try{return String.fromCodePoint.apply(null,String(k).split('').map(function(c){return 127397+c.charCodeAt(0)}))}catch(e){return ''}}
-var selCC=document.getElementById('f-cc');
-CT.forEach(function(c){var o=document.createElement('option');o.value=c[0];o.textContent=flag(c[0])+' '+c[1];selCC.appendChild(o)});
 
 /* ---------- inscription ---------- */
 var reg=document.getElementById('reg'),ferr=document.getElementById('f-err');
@@ -169,11 +165,11 @@ function openReg(){ferr.textContent='';reg.classList.add('show')}
 function closeReg(){reg.classList.remove('show')}
 document.getElementById('f-no').onclick=closeReg;
 document.getElementById('f-ok').onclick=function(){
- var p=document.getElementById('f-pseudo').value.trim(),c=document.getElementById('f-city').value.trim(),k=selCC.value;
- if(p.length<2||c.length<2||!k){ferr.textContent='Remplis les trois champs';return}
+ var p=document.getElementById('f-pseudo').value.trim();
+ if(p.length<2){ferr.textContent='Choisis un pseudo (2 caractères minimum)';return}
  ferr.textContent='…';
- rpc('register_player',{p_pseudo:p,p_city:c,p_country:k}).then(function(t){
-  tok=t;pseudo=p;city=c;cc=k;mytotal=0;suspended=false;save();closeReg();renderWho();updateMe();flash('bienvenue '+p);if(boardOpen)loadBoard();
+ rpc('register_player',{p_pseudo:p}).then(function(t){
+  tok=t;pseudo=p;mytotal=0;suspended=false;save();closeReg();renderWho();updateMe();flash('bienvenue '+p);if(boardOpen)loadBoard();
  }).catch(function(err){
   var m=String(err.message||'');
   ferr.textContent=m.indexOf('deja pris')>-1?'Ce pseudo est déjà pris':m.indexOf('refuse')>-1?'Pseudo refusé':m.indexOf('caracteres')>-1?'Caractères non autorisés':'Impossible pour le moment, réessaie';
@@ -182,17 +178,16 @@ document.getElementById('f-ok').onclick=function(){
 
 /* ---------- classement ---------- */
 var rowsEl=document.getElementById('rows'),who=document.getElementById('who');
-function row(rank,name,score,isMe,geo){return '<div class="r'+(isMe?' me':'')+'"><span class="k">'+rank+'</span><span class="p">'+esc(name)+'<small>'+esc(geo||'')+'</small></span><span class="s">'+fmt(score)+'</span></div>'}
-function geo(r){return flag(r.country)+' '+r.city+', '+cname(r.country)}
+function row(rank,name,score,isMe){return '<div class="r'+(isMe?' me':'')+'"><span class="k">'+rank+'</span><span class="p">'+esc(name)+'</span><span class="s">'+fmt(score)+'</span></div>'}
 function renderBoard(){
  var html='',mine=pseudo.toLowerCase(),shownMe=false;
- lb.slice(0,20).forEach(function(r,i){var isMe=tok&&r.pseudo.toLowerCase()===mine;if(isMe)shownMe=true;html+=row(i+1,r.pseudo,r.score,isMe,geo(r))});
+ lb.slice(0,20).forEach(function(r,i){var isMe=tok&&r.pseudo.toLowerCase()===mine;if(isMe)shownMe=true;html+=row(i+1,r.pseudo,r.score,isMe)});
  if(!lb.length)html='<div class="gap">personne pour l’instant</div>';
- if(tok&&!shownMe&&myr&&myr.my_rank>20&&myr.my_score>0)html+='<div class="gap">···</div>'+row(myr.my_rank,pseudo,myr.my_score,true,flag(cc)+' '+city+', '+cname(cc));
+ if(tok&&!shownMe&&myr&&myr.my_rank>20&&myr.my_score>0)html+='<div class="gap">···</div>'+row(myr.my_rank,pseudo,myr.my_score,true);
  rowsEl.innerHTML=html;
 }
 function renderWho(){
- if(tok){who.textContent='tu joues en tant que '+pseudo+' · '+city}
+ if(tok){who.textContent='tu joues en tant que '+pseudo}
  else{who.innerHTML='<button id="join">Rejoindre le classement</button>';document.getElementById('join').onclick=openReg}
 }
 function loadBoard(){
