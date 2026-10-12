@@ -27,6 +27,7 @@ button{font:inherit;color:inherit}
 #foot button{background:none;border:0;color:var(--muted);letter-spacing:.1em;cursor:pointer;padding:4px;text-transform:uppercase;font-size:.78rem}
 #foot button:hover{color:var(--fg)}
 #sh{display:none}
+#foot #sh{color:var(--fg);border:1px solid var(--muted);border-radius:999px;padding:7px 16px}
 #pv,.pvl{color:var(--muted);text-decoration:none;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase}
 #pv:hover,.pvl:hover{color:var(--fg)}
 .pvl{margin-top:18px}
@@ -61,6 +62,7 @@ button{font:inherit;color:inherit}
 #reg .row{justify-content:center;margin-top:10px}
 #f-err{color:#e4572e;min-height:1em}
 </style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 </head>
 <body>
 <div id="tabs"><button id="t1" class="on">Bouton</button><button id="t2">Classement</button></div>
@@ -80,6 +82,7 @@ button{font:inherit;color:inherit}
 <div id="reg"><div class="box">
   <h2>Rejoins le classement</h2>
   <input id="f-pseudo" maxlength="14" placeholder="pseudo" autocomplete="off">
+  <div id="ts" style="display:flex;justify-content:center;margin-top:6px;min-height:4px"></div>
   <p id="f-err"></p>
   <p>Ton pseudo sera visible par tous. <a href="/privacy.html" style="color:inherit">Confidentialité</a></p>
   <div class="row"><button id="f-ok">Valider</button><button class="g" id="f-no">Plus tard</button></div>
@@ -107,7 +110,7 @@ function rpc(fn,args,keep){
 }
 function showCount(){n.textContent=fmt(shown)}
 function fetchCounter(){rpc('get_counter').then(function(v){base=Number(v)||0;shown=Math.max(shown,base+pending);showCount()}).catch(function(){})}
-function updateMe(){var v=mytotal+pending+sending;me.textContent=v>0?fmt(v)+(v>1?' clics à toi':' clic à toi'):'';document.getElementById('sh').style.display=v>0?'inline':'none'}
+function updateMe(){var v=mytotal+pending+sending;me.textContent=v>0?fmt(v)+(v>1?' clics à toi':' clic à toi'):'';document.getElementById('sh').style.display=tok?'inline':'none'}
 function flush(keep){
  if(sending||!pending||!tok||suspended)return;
  var c=pending;pending=0;sending=c;
@@ -161,18 +164,27 @@ document.getElementById('b').addEventListener('click',function(e){
 
 /* ---------- inscription ---------- */
 var reg=document.getElementById('reg'),ferr=document.getElementById('f-err');
-function openReg(){ferr.textContent='';reg.classList.add('show')}
+var tsToken='',tsId=null,tsTries=0,TSKEY='0x4AAAAAAFUdbgoCoAXVXoNg';
+function renderTs(){
+ if(!window.turnstile){if(tsTries++<40)setTimeout(renderTs,300);return}
+ if(tsId===null){tsId=turnstile.render('#ts',{sitekey:TSKEY,theme:'auto',callback:function(t){tsToken=t},'expired-callback':function(){tsToken=''},'error-callback':function(){tsToken=''}})}
+ else{tsToken='';try{turnstile.reset(tsId)}catch(e){}}
+}
+function openReg(){ferr.textContent='';reg.classList.add('show');renderTs()}
 function closeReg(){reg.classList.remove('show')}
 document.getElementById('f-no').onclick=closeReg;
 document.getElementById('f-ok').onclick=function(){
  var p=document.getElementById('f-pseudo').value.trim();
  if(p.length<2){ferr.textContent='Choisis un pseudo (2 caractères minimum)';return}
+ if(!tsToken){ferr.textContent='Vérification en cours, patiente un instant';return}
  ferr.textContent='…';
- rpc('register_player',{p_pseudo:p}).then(function(t){
-  tok=t;pseudo=p;mytotal=0;suspended=false;save();closeReg();renderWho();updateMe();flash('bienvenue '+p);if(boardOpen)loadBoard();
- }).catch(function(err){
+ fetch(SB+'/functions/v1/register',{method:'POST',headers:{'apikey':KEY,'Content-Type':'application/json'},body:JSON.stringify({pseudo:p,turnstile:tsToken})})
+ .then(function(r){return r.json().then(function(j){if(!r.ok||!j.token)throw new Error((j&&j.error)||'erreur');return j.token})})
+ .then(function(t){tok=t;pseudo=p;mytotal=0;suspended=false;save();closeReg();renderWho();updateMe();flash('bienvenue '+p);if(boardOpen)loadBoard()})
+ .catch(function(err){
   var m=String(err.message||'');
-  ferr.textContent=m.indexOf('deja pris')>-1?'Ce pseudo est déjà pris':m.indexOf('refuse')>-1?'Pseudo refusé':m.indexOf('caracteres')>-1?'Caractères non autorisés':'Impossible pour le moment, réessaie';
+  ferr.textContent=m.indexOf('deja pris')>-1?'Ce pseudo est déjà pris':m.indexOf('refuse')>-1?'Pseudo refusé':m.indexOf('caracteres')>-1?'Caractères non autorisés':m.indexOf('invalide')>-1?'Pseudo invalide (2 à 14 caractères)':m.indexOf('captcha')>-1?'Vérification échouée, réessaie':'Impossible pour le moment, réessaie';
+  tsToken='';try{turnstile.reset(tsId)}catch(e){}
  });
 };
 
@@ -187,7 +199,7 @@ function renderBoard(){
  rowsEl.innerHTML=html;
 }
 function renderWho(){
- if(tok){who.textContent='tu joues en tant que '+pseudo}
+ if(tok){who.innerHTML='tu joues en tant que '+esc(pseudo)+'<br><br><button id="sh2">Partager mon score</button>';document.getElementById('sh2').onclick=openShare}
  else{who.innerHTML='<button id="join">Rejoindre le classement</button>';document.getElementById('join').onclick=openReg}
 }
 function loadBoard(){
