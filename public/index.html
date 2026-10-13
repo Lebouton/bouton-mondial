@@ -3,7 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>.</title>
+<title>Un bouton</title>
+<meta name="description" content="Un bouton. Un compteur mondial. Jusqu'où iras-tu ?">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="Un bouton">
+<meta property="og:title" content="Un bouton">
+<meta property="og:description" content="Un compteur mondial, un seul bouton. Jusqu'où iras-tu ?">
+<meta property="og:url" content="https://unbouton.com/">
+<meta property="og:image" content="https://unbouton.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Un bouton">
+<meta name="twitter:description" content="Un compteur mondial, un seul bouton. Jusqu'où iras-tu ?">
+<meta name="twitter:image" content="https://unbouton.com/og.png">
 <style>
 :root{--bg:#0b0b0b;--fg:#f2f2f2;--muted:#6b6b6b;--btn:#f2f2f2;--btnfg:#0b0b0b;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -95,13 +109,14 @@ button{font:inherit;color:inherit}
 <script>
 var SB='https://olrszbxxstlldkcyjwwh.supabase.co',KEY='sb_publishable_JipYH7C-ut62Iyarr1L4_g_LBqm5wUU';
 var S={};try{S=JSON.parse(localStorage.getItem('bm')||'{}')||{}}catch(e){}
-var tok=S.tok||'',pseudo=S.p||'',mytotal=S.t||0;
+function utcDay(){return new Date().toISOString().slice(0,10)}
+var tok=S.tok||'',pseudo=S.p||'',mytotal=S.t||0,capDay=S.cd||'',capped=(S.cd===utcDay()),lastCapMsg=0,lastAct=Date.now(),pollN=0;
 var pending=0,sending=0,base=0,shown=0,suspended=false,localBan=false,flags=0,times=[],lock=0;
 var period='total',boardOpen=false,sound=true,ac=null,bus=null,lb=[],myr=null,lastRank=null;
 var n=document.getElementById('n'),me=document.getElementById('me'),msg=document.getElementById('msg');
 function fmt(x){return Number(x).toLocaleString('fr-FR')}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-function save(){try{localStorage.setItem('bm',JSON.stringify({tok:tok,p:pseudo,t:mytotal}))}catch(e){}}
+function save(){try{localStorage.setItem('bm',JSON.stringify({tok:tok,p:pseudo,t:mytotal,cd:capped?capDay:''}))}catch(e){}}
 
 /* ---------- serveur ---------- */
 function rpc(fn,args,keep){
@@ -110,19 +125,25 @@ function rpc(fn,args,keep){
 }
 function showCount(){n.textContent=fmt(shown)}
 function fetchCounter(){rpc('get_counter').then(function(v){base=Number(v)||0;shown=Math.max(shown,base+pending);showCount()}).catch(function(){})}
-function updateMe(){var v=mytotal+pending+sending;me.textContent=v>0?fmt(v)+(v>1?' clics à toi':' clic à toi'):'';document.getElementById('sh').style.display=tok?'inline':'none'}
+function updateMe(){var v=mytotal+pending+sending;me.textContent=v>0?fmt(v)+(v>1?' clics à toi':' clic à toi')+(capped?' · limite du jour atteinte':''):'';document.getElementById('sh').style.display=tok?'inline':'none'}
 function flush(keep){
  if(sending||!pending||!tok||suspended)return;
  var c=pending;pending=0;sending=c;
  rpc('submit_clicks',{p_token:tok,p_count:c},keep).then(function(t){
   sending=0;t=Number(t)||0;
-  if(t===0){suspended=true;flash('compte suspendu')}else{mytotal=t;save()}
+  if(t===0){suspended=true;flash('compte suspendu')}else{if(c>0&&t===mytotal){capped=true;capDay=utcDay();flash('limite du jour atteinte')}mytotal=t;save()}
   updateMe();fetchCounter();
  }).catch(function(){sending=0;pending+=c;updateMe()});
 }
 setInterval(function(){flush(false)},2500);
-setInterval(fetchCounter,3000);
-document.addEventListener('visibilitychange',function(){if(document.hidden)flush(true)});
+function poll(){
+ if(document.hidden)return;
+ if(Date.now()-lastAct>60000&&!boardOpen&&(pollN++%4!==0))return;
+ fetchCounter();
+}
+setInterval(poll,3000);
+['pointerdown','keydown','touchstart'].forEach(function(ev){window.addEventListener(ev,function(){lastAct=Date.now()},{passive:true})});
+document.addEventListener('visibilitychange',function(){if(document.hidden)flush(true);else{lastAct=Date.now();fetchCounter()}});
 window.addEventListener('pagehide',function(){flush(true)});
 
 /* ---------- ressenti ---------- */
@@ -151,7 +172,10 @@ function human(e){
 /* ---------- clic ---------- */
 document.getElementById('b').addEventListener('click',function(e){
  if(!tok){openReg();return}
+ if(capped&&utcDay()!==capDay){capped=false;capDay='';save()}
+ if(capped){var nw=Date.now();if(nw-lastCapMsg>3000){lastCapMsg=nw;flash('limite du jour atteinte · reviens demain')}return}
  if(!human(e))return;
+ lastAct=Date.now();
  pending++;shown++;showCount();
  n.animate([{transform:'scale(1.045)'},{transform:'scale(1)'}],{duration:130,easing:'ease-out'});
  ring(false);tick();updateMe();
@@ -214,7 +238,7 @@ function show(b){boardOpen=b;document.getElementById('board').classList.toggle('
 document.getElementById('t1').onclick=function(){show(false)};
 document.getElementById('t2').onclick=function(){show(true)};
 document.querySelectorAll('#per button').forEach(function(btn){btn.onclick=function(){period=btn.dataset.p;document.querySelectorAll('#per button').forEach(function(x){x.classList.toggle('on',x===btn)});lb=[];rowsEl.innerHTML='';loadBoard()}});
-setInterval(function(){if(boardOpen)loadBoard()},6000);
+setInterval(function(){if(boardOpen&&!document.hidden)loadBoard()},6000);
 
 /* ---------- partage ---------- */
 var blobShare=null,shareText='';
