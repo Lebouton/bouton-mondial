@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Un bouton</title>
 <meta name="description" content="Un bouton. Un compteur mondial. Jusqu'où iras-tu ?">
+<link rel="canonical" href="https://unbouton.com/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:site_name" content="Un bouton">
@@ -238,7 +239,7 @@ function show(b){boardOpen=b;document.getElementById('board').classList.toggle('
 document.getElementById('t1').onclick=function(){show(false)};
 document.getElementById('t2').onclick=function(){show(true)};
 document.querySelectorAll('#per button').forEach(function(btn){btn.onclick=function(){period=btn.dataset.p;document.querySelectorAll('#per button').forEach(function(x){x.classList.toggle('on',x===btn)});lb=[];rowsEl.innerHTML='';loadBoard()}});
-setInterval(function(){if(boardOpen&&!document.hidden)loadBoard()},6000);
+setInterval(function(){if(boardOpen&&!document.hidden)loadBoard()},10000);
 
 /* ---------- partage ---------- */
 var blobShare=null,shareText='';
