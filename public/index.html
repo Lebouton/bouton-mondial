@@ -49,6 +49,9 @@ button{font:inherit;color:inherit}
 #tabs{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;display:flex;justify-content:center;gap:28px;padding:18px 0;z-index:3}
 #tabs button,#per button{background:none;border:0;color:var(--muted);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;padding:4px 2px;border-bottom:1px solid transparent}
 #tabs button.on,#per button.on{color:var(--fg);border-bottom-color:var(--fg)}
+#tabs a{color:var(--muted);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;padding:4px 2px;border-bottom:1px solid transparent;text-decoration:none}
+#tabs a:hover{color:var(--fg)}
+@media (max-width:420px){#tabs{gap:16px}#tabs button,#tabs a{font-size:.68rem;letter-spacing:.1em}}
 #board{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;padding:84px 24px 40px;overflow-y:auto;z-index:2}
 #board.show{display:flex}
 #per{display:flex;gap:22px;margin-bottom:14px}
@@ -80,7 +83,7 @@ button{font:inherit;color:inherit}
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 </head>
 <body>
-<div id="tabs"><button id="t1" class="on">Bouton</button><button id="t2">Classement</button></div>
+<div id="tabs"><button id="t1" class="on">Bouton</button><button id="t2">Classement</button><a id="t3" href="/presentation">Présentation</a></div>
 <div id="home">
   <div style="text-align:center"><div id="lab" style="font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">compteur de clics mondial</div><div id="n">–</div></div>
   <div id="wrap"><button id="b" aria-label="Cliquer"></button></div>
@@ -282,6 +285,7 @@ document.getElementById('go').onclick=function(){
 
 /* ---------- démarrage ---------- */
 updateMe();fetchCounter();
+if(location.hash==='#classement')show(true);
 </script>
 </body>
 </html>
