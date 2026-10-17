@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Présentation – Un bouton, un compteur de clics mondial</title>
+<meta name="description" content="unbouton.com : un seul bouton et un compteur de clics partagé par le monde entier. Découvre comment ça marche, le classement du jour, de la semaine et total, et les règles du jeu.">
+<link rel="canonical" href="https://unbouton.com/presentation">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="Un bouton">
+<meta property="og:title" content="Un bouton, un compteur de clics mondial">
+<meta property="og:description" content="Un seul bouton, un compteur partagé par le monde entier. Jusqu'où iras-tu ?">
+<meta property="og:url" content="https://unbouton.com/presentation">
+<meta property="og:image" content="https://unbouton.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root{--bg:#0b0b0b;--fg:#f2f2f2;--muted:#8a8a8a;--btn:#f2f2f2;--btnfg:#0b0b0b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f6f4;--fg:#111;--muted:#6b6b6b;--btn:#111;--btnfg:#f6f6f4}}
+:root[data-theme="light"]{--bg:#f6f6f4;--fg:#111;--muted:#6b6b6b;--btn:#111;--btnfg:#f6f6f4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;line-height:1.65;font-weight:300}
+nav{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);display:flex;justify-content:center;gap:28px;padding:18px 0;z-index:3}
+nav a{color:var(--muted);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;padding:4px 2px;border-bottom:1px solid transparent;text-decoration:none}
+nav a:hover{color:var(--fg)}
+nav a.on{color:var(--fg);border-bottom-color:var(--fg)}
+@media (max-width:420px){nav{gap:16px}nav a{font-size:.68rem;letter-spacing:.1em}}
+main{max-width:600px;margin:0 auto;padding:30px 22px 80px}
+h1{font-weight:200;font-size:clamp(1.8rem,7vw,2.6rem);letter-spacing:.04em;margin:0 0 18px;line-height:1.2}
+h2{font-weight:400;font-size:.85rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:38px 0 10px}
+h3{font-weight:400;font-size:1.02rem;margin:22px 0 4px}
+p,li{margin:0 0 10px}
+ol,ul{padding-left:20px;margin:0 0 10px}
+a{color:var(--fg)}
+.cta{display:inline-block;margin-top:30px;background:var(--btn);color:var(--btnfg);text-decoration:none;border-radius:999px;padding:13px 30px;font-size:.85rem;letter-spacing:.12em;text-transform:uppercase}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/">Bouton</a>
+  <a href="/#classement">Classement</a>
+  <a href="/presentation" class="on">Présentation</a>
+</nav>
+<main>
+<h1>Un bouton, un compteur de clics mondial</h1>
+<p>unbouton.com est un site minimaliste : une seule page, un seul bouton rond et un compteur de clics partagé par tous les visiteurs du monde entier. Chaque clic que tu fais s'ajoute à celui de toutes les autres personnes connectées. Le site ne sert à rien, et c'est justement ce qui fait son charme.</p>
+
+<h2>Comment ça marche</h2>
+<ol>
+<li>Tu ouvres la page et tu vois le compteur mondial, le nombre total de clics faits par tous les joueurs.</li>
+<li>Tu cliques sur le bouton. Au premier clic, tu choisis un pseudo : pas d'adresse email, pas de mot de passe.</li>
+<li>Chaque clic fait un petit son doux, de type ASMR, et le compteur avance.</li>
+<li>Tes clics sont comptés dans ton score personnel et dans le classement.</li>
+</ol>
+
+<h2>Le compteur mondial</h2>
+<p>Le compteur est stocké dans une base de données partagée. Quand quelqu'un clique à l'autre bout de la planète, ton écran se met à jour quelques secondes plus tard. Des messages apparaissent à certains paliers, pour tes propres clics comme pour le total mondial.</p>
+
+<h2>Le classement</h2>
+<p>Trois classements existent : celui du jour, celui de la semaine et celui de tous les temps. Les 20 premiers joueurs sont affichés. Si tu n'en fais pas partie, ton rang apparaît quand même sous la liste, pour que tu saches où tu te situes. Tu peux partager ton score sous forme d'image, avec ton nombre de clics et ton rang.</p>
+
+<h2>Règles et fair-play</h2>
+<ul>
+<li>Une vérification anti-robots a lieu à l'inscription.</li>
+<li>La cadence des clics est limitée à environ 12 par seconde.</li>
+<li>Chaque joueur peut compter au maximum 60 000 clics par jour. Au-delà, les clics ne sont plus pris en compte jusqu'au lendemain (réinitialisation à minuit, heure UTC).</li>
+<li>Les comptes qui trichent ou dont le pseudo est inapproprié peuvent être retirés du classement.</li>
+</ul>
+
+<h2>Questions fréquentes</h2>
+<h3>À quoi sert ce site ?</h3>
+<p>À rien, et c'est voulu. C'est un petit projet pour s'amuser : cliquer, voir le compteur grimper et comparer son score avec celui des autres.</p>
+<h3>Est-ce gratuit ?</h3>
+<p>Oui. Pour l'instant, le site est gratuit et sans publicité.</p>
+<h3>Faut-il créer un compte ?</h3>
+<p>Il suffit de choisir un pseudo. Il n'y a ni email, ni mot de passe.</p>
+<h3>Quelles données sont enregistrées ?</h3>
+<p>Ton pseudo, ton nombre de clics et un identifiant technique stocké dans ton navigateur. Tous les détails sont dans la <a href="/privacy.html">page de confidentialité</a>.</p>
+<h3>Ça marche sur téléphone ?</h3>
+<p>Oui, la page s'adapte aux téléphones, aux tablettes et aux ordinateurs.</p>
+<h3>Pourquoi mon compteur ne bouge-t-il plus ?</h3>
+<p>Tu as sans doute atteint la limite de 60 000 clics du jour. Reviens le lendemain, elle est alors remise à zéro.</p>
+
+<a class="cta" href="/">Jouer</a>
+</main>
+</body>
+</html>
