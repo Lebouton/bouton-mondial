@@ -102,7 +102,7 @@ button{font:inherit;color:inherit}
   <input id="f-pseudo" maxlength="14" placeholder="pseudo" autocomplete="off">
   <div id="ts" style="display:flex;justify-content:center;margin-top:6px;min-height:4px"></div>
   <p id="f-err"></p>
-  <p>Ton pseudo sera visible par tous. <a href="/privacy.html" style="color:inherit">Confidentialité</a></p>
+  <p id="f-info">Ton pseudo sera visible par tous. <a href="/privacy.html" style="color:inherit">Confidentialité</a></p>
   <div class="row"><button id="f-ok">Valider</button><button class="g" id="f-no">Plus tard</button></div>
 </div></div>
 <div id="ov">
@@ -114,13 +114,14 @@ button{font:inherit;color:inherit}
 var SB='https://olrszbxxstlldkcyjwwh.supabase.co',KEY='sb_publishable_JipYH7C-ut62Iyarr1L4_g_LBqm5wUU';
 var S={};try{S=JSON.parse(localStorage.getItem('bm')||'{}')||{}}catch(e){}
 function utcDay(){return new Date().toISOString().slice(0,10)}
+var GUEST_MAX=10,guest=Math.min(S.g||0,10);
 var tok=S.tok||'',pseudo=S.p||'',mytotal=S.t||0,capDay=S.cd||'',capped=(S.cd===utcDay()),lastCapMsg=0,lastAct=Date.now(),pollN=0;
 var pending=0,sending=0,base=0,shown=0,suspended=false,localBan=false,flags=0,times=[],lock=0;
 var period='total',boardOpen=false,sound=true,ac=null,bus=null,lb=[],myr=null,lastRank=null;
 var n=document.getElementById('n'),me=document.getElementById('me'),msg=document.getElementById('msg');
 function fmt(x){return Number(x).toLocaleString('fr-FR')}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-function save(){try{localStorage.setItem('bm',JSON.stringify({tok:tok,p:pseudo,t:mytotal,cd:capped?capDay:''}))}catch(e){}}
+function save(){try{localStorage.setItem('bm',JSON.stringify({tok:tok,p:pseudo,t:mytotal,cd:capped?capDay:'',g:guest}))}catch(e){}}
 
 /* ---------- serveur ---------- */
 function rpc(fn,args,keep){
@@ -129,7 +130,7 @@ function rpc(fn,args,keep){
 }
 function showCount(){n.textContent=fmt(shown)}
 function fetchCounter(){rpc('get_counter').then(function(v){base=Number(v)||0;shown=Math.max(shown,base+pending);showCount()}).catch(function(){})}
-function updateMe(){var v=mytotal+pending+sending;me.textContent=v>0?fmt(v)+(v>1?' clics à toi':' clic à toi')+(capped?' · limite du jour atteinte':''):'';document.getElementById('sh').style.display=tok?'inline':'none'}
+function updateMe(){if(!tok){me.textContent=guest>0?guest+' / '+GUEST_MAX+' clics d’essai':'';document.getElementById('sh').style.display='none';return}var v=mytotal+pending+sending;me.textContent=v>0?fmt(v)+(v>1?' clics à toi':' clic à toi')+(capped?' · limite du jour atteinte':''):'';document.getElementById('sh').style.display=tok?'inline':'none'}
 function flush(keep){
  if(sending||!pending||!tok||suspended)return;
  var c=pending;pending=0;sending=c;
@@ -175,7 +176,17 @@ function human(e){
 
 /* ---------- clic ---------- */
 document.getElementById('b').addEventListener('click',function(e){
- if(!tok){openReg();return}
+ if(!tok){
+  if(guest>=GUEST_MAX){openReg();return}
+  if(!human(e))return;
+  lastAct=Date.now();
+  guest++;shown++;showCount();save();
+  n.animate([{transform:'scale(1.045)'},{transform:'scale(1)'}],{duration:130,easing:'ease-out'});
+  ring(false);tick();updateMe();
+  try{navigator.vibrate&&navigator.vibrate(8)}catch(x){}
+  if(guest>=GUEST_MAX){ring(true);flash('choisis un pseudo pour continuer');setTimeout(openReg,900)}
+  else if(MS[guest]){ring(true);flash(MS[guest])}
+  return}
  if(capped&&utcDay()!==capDay){capped=false;capDay='';save()}
  if(capped){var nw=Date.now();if(nw-lastCapMsg>3000){lastCapMsg=nw;flash('limite du jour atteinte · reviens demain')}return}
  if(!human(e))return;
@@ -198,7 +209,7 @@ function renderTs(){
  if(tsId===null){tsId=turnstile.render('#ts',{sitekey:TSKEY,theme:'auto',callback:function(t){tsToken=t},'expired-callback':function(){tsToken=''},'error-callback':function(){tsToken=''}})}
  else{tsToken='';try{turnstile.reset(tsId)}catch(e){}}
 }
-function openReg(){ferr.textContent='';reg.classList.add('show');renderTs()}
+function openReg(){ferr.textContent='';document.getElementById('f-info').innerHTML=(guest>0?'Tes '+guest+' premiers clics seront comptés. ':'')+'Ton pseudo sera visible par tous. <a href="/privacy.html" style="color:inherit">Confidentialité</a>';reg.classList.add('show');renderTs()}
 function closeReg(){reg.classList.remove('show')}
 document.getElementById('f-no').onclick=closeReg;
 document.getElementById('f-ok').onclick=function(){
@@ -208,7 +219,7 @@ document.getElementById('f-ok').onclick=function(){
  ferr.textContent='…';
  fetch(SB+'/functions/v1/register',{method:'POST',headers:{'apikey':KEY,'Content-Type':'application/json'},body:JSON.stringify({pseudo:p,turnstile:tsToken})})
  .then(function(r){return r.json().then(function(j){if(!r.ok||!j.token)throw new Error((j&&j.error)||'erreur');return j.token})})
- .then(function(t){tok=t;pseudo=p;mytotal=0;suspended=false;save();closeReg();renderWho();updateMe();flash('bienvenue '+p);if(boardOpen)loadBoard()})
+ .then(function(t){tok=t;pseudo=p;mytotal=0;suspended=false;pending+=guest;guest=0;save();closeReg();renderWho();updateMe();flash('bienvenue '+p);if(boardOpen)loadBoard()})
  .catch(function(err){
   var m=String(err.message||'');
   ferr.textContent=m.indexOf('deja pris')>-1?'Ce pseudo est déjà pris':m.indexOf('refuse')>-1?'Pseudo refusé':m.indexOf('caracteres')>-1?'Caractères non autorisés':m.indexOf('invalide')>-1?'Pseudo invalide (2 à 14 caractères)':m.indexOf('captcha')>-1?'Vérification échouée, réessaie':'Impossible pour le moment, réessaie';
